@@ -6,8 +6,8 @@ GO_BUILD_BIN := emporous-fuse-go
 GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
 GIT_TAG :="$(shell git tag | sort -V | tail -1)"
 
-GO_LD_EXTRAFLAGS :=-X github.com/emporous-community/emporous-fuse-go/cli.version="$(shell git tag | sort -V | tail -1)" \
-                   -X github.com/emporous-community/emporous-fuse-go/cli.buildData="dev" \
+GO_LD_EXTRAFLAGS :=-X github.com/emporous-community/emporous-fuse-go/cli.version="$(shell git describe --always --dirty --tags)" \
+                   -X github.com/emporous-community/emporous-fuse-go/cli.buildData="" \
                    -X github.com/emporous-community/emporous-fuse-go/cli.commit="$(GIT_COMMIT)" \
                    -X github.com/emporous-community/emporous-fuse-go/cli.buildDate="$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')"
 

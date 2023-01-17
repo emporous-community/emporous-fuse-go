@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
-	"github.com/uor-framework/uor-fuse-go/cli"
-	"github.com/uor-framework/uor-fuse-go/cli/log"
-	"github.com/uor-framework/uor-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/cli"
+	"github.com/emporous-community/emporous-fuse-go/cli/log"
+	"github.com/emporous-community/emporous-fuse-go/config"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func NewRootCmd() *cobra.Command {
 	o.EnvConfig = config.ReadEnvConfig()
 	cmd := &cobra.Command{
 		Use:   filepath.Base(os.Args[0]),
-		Short: "UOR FUSE Driver",
+		Short: "Emporous FUSE Driver",
 		//Long:          clientLong,
 		SilenceErrors: false,
 		SilenceUsage:  false,
@@ -41,11 +41,12 @@ func NewRootCmd() *cobra.Command {
 			}
 			o.Logger = logger
 
-			cacheEnv := os.Getenv("UOR_CACHE")
+			cacheEnv := os.Getenv("EMPOROUS_CACHE")
 			if cacheEnv != "" {
 				o.CacheDir = cacheEnv
 			} else {
-				o.CacheDir = filepath.Join(xdg.CacheHome, "uor")
+				// ~/.cache/emporous
+				o.CacheDir = filepath.Join(xdg.CacheHome, "emporous")
 			}
 
 			return os.MkdirAll(o.CacheDir, 0750)

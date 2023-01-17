@@ -1,17 +1,19 @@
-# uor-fuse-go
+# emporous-fuse-go
 
-Mount a UOR collection to a directory with FUSE.
+Mount an Emporous collection to a directory with FUSE.
 
 Usage:
 
-    ./uor-fuse-go mount <collection> <mountpoint>
-    ./uor-fuse-go mount localhost:5001/test:latest ./mount-dir/
+    ./emporous-fuse-go mount <collection> <mountpoint>
+    ./emporous-fuse-go mount localhost:5001/test:latest ./mount-dir/
 
-    # Read UOR attributes of files:
+    # Read Emporous attributes of files:
     getfattr -d ./mount-dir/index.json
 
 Considerations / TODO:
 
+* Use GRPC to fetch file?
+* Use file permission attributes?
 * Cache data better?
   * Cache will use disk or memory
   * Cache invalidation will be important

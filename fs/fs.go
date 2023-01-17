@@ -305,8 +305,7 @@ func (fs *UorFs) loadFromReference(ctx context.Context, reference string, client
 			continue
 		}
 
-		skip := func(_ string) bool { return false }
-		attributeSet, err := ocimanifest.AnnotationsToAttributeSet(layerInfo.Annotations, skip)
+		attributeSet, err := ocimanifest.AnnotationsToAttributeSet(layerInfo.Annotations, nil)
 		if err != nil {
 			return err
 		}

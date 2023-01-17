@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mitchellh/go-homedir"
+	"github.com/adrg/xdg"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
@@ -45,11 +45,7 @@ func NewRootCmd() *cobra.Command {
 			if cacheEnv != "" {
 				o.CacheDir = cacheEnv
 			} else {
-				home, err := homedir.Dir()
-				if err != nil {
-					return err
-				}
-				o.CacheDir = filepath.Join(home, ".uor", "cache")
+				o.CacheDir = filepath.Join(xdg.CacheHome, "uor")
 			}
 
 			return os.MkdirAll(o.CacheDir, 0750)

@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/uor-framework/uor-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/config"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 	buildData string
 )
 
-var versionTemplate = `UOR FUSE Driver:
+var versionTemplate = `Emporous FUSE Driver:
  Version:	{{ .Version }}
  Go Version:	{{ .GoVersion }}
  Git Commit:	{{ .GitCommit }}

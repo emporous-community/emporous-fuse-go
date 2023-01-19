@@ -9,15 +9,17 @@ import (
 	"path/filepath"
 	"syscall"
 
+	emporousconfig "github.com/emporous/emporous-go/config"
+	"github.com/emporous/emporous-go/content/layout"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/nodes/descriptor"
+	"github.com/emporous/emporous-go/registryclient/orasclient"
+	"github.com/emporous/emporous-go/util/examples"
 	"github.com/spf13/cobra"
-	"github.com/uor-framework/uor-client-go/attributes/matchers"
-	uorclientconfig "github.com/uor-framework/uor-client-go/config"
-	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
-	"github.com/uor-framework/uor-client-go/util/examples"
 	"github.com/winfsp/cgofuse/fuse"
 
-	"github.com/uor-framework/uor-fuse-go/config"
-	"github.com/uor-framework/uor-fuse-go/fs"
+	"github.com/emporous-community/emporous-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/fs"
 )
 
 var clientMountExamples = []examples.Example{
@@ -44,13 +46,13 @@ type MountOptions struct {
 }
 
 // NewMountCmd creates a new cobra.Command for the mount subcommand.
-// TODO decide whether to use traditional mount -o flag format or to reuse uor-client-go flags
+// TODO decide whether to use traditional mount -o flag format or to reuse emporous-go flags
 func NewMountCmd(rootOpts *config.RootOptions) *cobra.Command {
 	o := MountOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
 		Use:           "mount [flags] SRC MOUNTPOINT",
-		Short:         "Mount a UOR collection based on content or attribute address",
+		Short:         "Mount an Emporous collection based on content or attribute address",
 		Example:       examples.FormatExamples(clientMountExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
@@ -104,46 +106,49 @@ func unmountOnInterrupt(host *fuse.FileSystemHost) {
 }
 
 func (o *MountOptions) Run(ctx context.Context) error {
+	cache, err := layout.NewWithContext(ctx, o.CacheDir)
+	if err != nil {
+		return err
+	}
+
+	var clientOpts = []orasclient.ClientOption{
+		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.WithAuthConfigs(o.Configs),
+		orasclient.WithPlainHTTP(o.PlainHTTP),
+		orasclient.WithCache(cache),
+	}
 
 	o.Logger.Infof("Resolving artifacts for reference %s", o.Source)
-	matcher := matchers.PartialAttributeMatcher{}
+
+	var matcher model.Matcher
 	if o.AttributeQuery != "" {
-		query, err := uorclientconfig.ReadAttributeQuery(o.AttributeQuery)
+		query, err := emporousconfig.ReadAttributeQuery(o.AttributeQuery)
 		if err != nil {
 			return err
 		}
 
-		attributeSet, err := uorclientconfig.ConvertToModel(query.Attributes)
-		if err != nil {
-			return err
-		}
-		matcher = attributeSet.List()
+		matcher = descriptor.JSONSubsetMatcher(query.Attributes)
+		clientOpts = append(clientOpts, orasclient.WithPullableAttributes(matcher))
 	}
 
 	if !o.NoVerify {
 		o.Logger.Infof("Checking signature of %s", o.Source)
-		//if err := verifyCollection(o, ctx); err != nil {
+		//if err := verifyCollection(ctx, o.Source, o.Remote); err != nil {
 		//	return err
 		//}
-
 	}
 
-	client, err := orasclient.NewClient(
-		orasclient.SkipTLSVerify(o.Insecure),
-		orasclient.WithAuthConfigs(o.Configs),
-		orasclient.WithPlainHTTP(o.PlainHTTP),
-		orasclient.WithPullableAttributes(matcher),
-	)
+	client, err := orasclient.NewClient(clientOpts...)
 	if err != nil {
 		return fmt.Errorf("error configuring client: %v", err)
 	}
 
-	fuseHost := fuse.NewFileSystemHost(fs.NewUorFs(ctx, fs.UorFsOptions(*o), client, matcher))
+	fuseHost := fuse.NewFileSystemHost(fs.NewEmporousFs(ctx, fs.EmporousFsOptions(*o), client, matcher))
 	fuseHost.SetCapReaddirPlus(true)
 	go unmountOnInterrupt(fuseHost)
-	o.Logger.Infof("Mounting UOR to directory %v", o.MountPoint)
+	o.Logger.Infof("Mounting emporous to directory %v", o.MountPoint)
 	opts := []string{
-		"-o", "fsname=uorfs",
+		"-o", "fsname=emporousfs",
 		"-o", "ro",
 		"-o", "default_permissions",
 		"-o", "auto_unmount",

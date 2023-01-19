@@ -1,24 +1,27 @@
-module github.com/uor-framework/uor-fuse-go
+module github.com/emporous-community/emporous-fuse-go
 
 go 1.19
 
 require (
+	github.com/adrg/xdg v0.4.0
+	github.com/emporous/collection-spec v0.0.0-20230112181029-9df787e68bce
+	github.com/emporous/emporous-go v0.4.0
 	github.com/google/go-containerregistry v0.12.0
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/image-spec v1.1.0-rc2
 	github.com/oras-project/artifacts-spec v1.0.0-rc.2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
-	github.com/uor-framework/uor-client-go v0.3.1-0.20221031130609-2af806b86e93
 	github.com/winfsp/cgofuse v1.5.0
 	k8s.io/cli-runtime v0.25.3
-	oras.land/oras-go/v2 v2.0.0-rc.3
 )
+
+//replace github.com/emporous/emporous-go => github.com/jpower432/client chore/emporous_name_change // GOPROXY=direct
+replace github.com/emporous/emporous-go => github.com/jpower432/client v0.0.0-20230113184946-f28d7f9f1c3d
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
-	github.com/adrg/xdg v0.4.0 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/cli v20.10.21+incompatible // indirect
 	github.com/docker/docker v20.10.21+incompatible // indirect
@@ -53,7 +56,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86 // indirect
+	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -84,6 +87,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
 	k8s.io/kubectl v0.25.3 // indirect
 	k8s.io/utils v0.0.0-20221101230645-61b03e2f6476 // indirect
+	oras.land/oras-go/v2 v2.0.0-rc.4 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/kustomize/api v0.12.1 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.9 // indirect

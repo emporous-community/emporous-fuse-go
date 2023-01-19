@@ -9,18 +9,18 @@ import (
 	"sync/atomic"
 	"time"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/nodes/descriptor"
+	v2 "github.com/emporous/emporous-go/nodes/descriptor/v2"
+	"github.com/emporous/emporous-go/registryclient"
 	"github.com/google/go-containerregistry/pkg/v1/types"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	artifactspec "github.com/oras-project/artifacts-spec/specs-go/v1"
-	"github.com/uor-framework/uor-client-go/attributes/matchers"
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	"github.com/uor-framework/uor-client-go/ocimanifest"
-	"github.com/uor-framework/uor-client-go/registryclient"
 	"github.com/winfsp/cgofuse/fuse"
 
-	"github.com/uor-framework/uor-fuse-go/cli/log"
-	"github.com/uor-framework/uor-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/cli/log"
+	"github.com/emporous-community/emporous-fuse-go/config"
 )
 
 type DecayCache struct {
@@ -67,7 +67,7 @@ func (c *DecayCache) RemoveUser() {
 	}
 }
 
-type UorFsOptions struct {
+type EmporousFsOptions struct {
 	*config.RootOptions
 	Source         string
 	MountPoint     string
@@ -78,35 +78,35 @@ type UorFsOptions struct {
 	NoVerify       bool
 }
 
-type UorFs struct {
+type EmporousFs struct {
 	fuse.FileSystemBase
 
-	*UorFsOptions
+	*EmporousFsOptions
 	client  registryclient.Remote
-	matcher matchers.PartialAttributeMatcher
+	matcher model.Matcher
 
 	euid uint32
 	egid uint32
 
 	mutex sync.Mutex
 	ino   uint64
-	root  *UorFsNode
+	root  *EmporousFsNode
 	ctx   context.Context
 
 	cacheDuration *time.Duration
 }
 
-type UorFsNode struct {
+type EmporousFsNode struct {
 	stat     fuse.Stat_t
 	xattrs   map[string][]byte
-	children map[string]*UorFsNode
+	children map[string]*EmporousFsNode
 	data     *DecayCache
 	desc     *ocispec.Descriptor
 }
 
-func newNode(dev uint64, ino uint64, mode uint32, uid uint32, gid uint32) *UorFsNode {
+func newNode(dev uint64, ino uint64, mode uint32, uid uint32, gid uint32) *EmporousFsNode {
 	now := fuse.Now()
-	node := UorFsNode{
+	node := EmporousFsNode{
 		fuse.Stat_t{
 			Dev:      dev,
 			Ino:      ino,
@@ -126,13 +126,13 @@ func newNode(dev uint64, ino uint64, mode uint32, uid uint32, gid uint32) *UorFs
 		nil,
 	}
 	if fuse.S_IFDIR == node.stat.Mode&fuse.S_IFMT {
-		node.children = map[string]*UorFsNode{}
+		node.children = map[string]*EmporousFsNode{}
 		node.stat.Nlink = 2 // 1 from parent + 1 from self
 	}
 	return &node
 }
 
-func (fs *UorFs) lookupNode(path string) *UorFsNode {
+func (fs *EmporousFs) lookupNode(path string) *EmporousFsNode {
 	pathParts := strings.Split(path, "/")
 	parent := fs.root
 	node := parent
@@ -157,7 +157,7 @@ func (fs *UorFs) lookupNode(path string) *UorFsNode {
 	return nil
 }
 
-func (fs *UorFs) Open(path string, flags int) (errc int, fh uint64) {
+func (fs *EmporousFs) Open(path string, flags int) (errc int, fh uint64) {
 	defer fs.synchronize()()
 	if node := fs.lookupNode(path); node != nil {
 		return 0, 0
@@ -165,7 +165,7 @@ func (fs *UorFs) Open(path string, flags int) (errc int, fh uint64) {
 	return -fuse.ENOENT, ^uint64(0)
 }
 
-func (fs *UorFs) Getattr(path string, stat *fuse.Stat_t, fh uint64) (errc int) {
+func (fs *EmporousFs) Getattr(path string, stat *fuse.Stat_t, fh uint64) (errc int) {
 	defer fs.synchronize()()
 	fs.Logger.Debugf("Getattr path: %v", path)
 
@@ -194,7 +194,7 @@ func (fs *UorFs) Getattr(path string, stat *fuse.Stat_t, fh uint64) (errc int) {
 	return 0
 }
 
-func (fs *UorFs) Read(path string, buff []byte, ofst int64, fh uint64) (n int) {
+func (fs *EmporousFs) Read(path string, buff []byte, ofst int64, fh uint64) (n int) {
 	defer fs.synchronize()()
 
 	node := fs.lookupNode(path)
@@ -224,7 +224,7 @@ func (fs *UorFs) Read(path string, buff []byte, ofst int64, fh uint64) (n int) {
 	return
 }
 
-func (fs *UorFs) Readdir(path string, fill func(name string, stat *fuse.Stat_t, ofst int64) bool, ofst int64, fh uint64) (errc int) {
+func (fs *EmporousFs) Readdir(path string, fill func(name string, stat *fuse.Stat_t, ofst int64) bool, ofst int64, fh uint64) (errc int) {
 	defer fs.synchronize()()
 	fill(".", nil, 0)
 	fill("..", nil, 0)
@@ -243,7 +243,7 @@ func (fs *UorFs) Readdir(path string, fill func(name string, stat *fuse.Stat_t, 
 
 }
 
-func (fs *UorFs) Listxattr(path string, fill func(name string) bool) (errc int) {
+func (fs *EmporousFs) Listxattr(path string, fill func(name string) bool) (errc int) {
 	defer fs.synchronize()()
 	node := fs.lookupNode(path)
 	if node == nil {
@@ -257,7 +257,7 @@ func (fs *UorFs) Listxattr(path string, fill func(name string) bool) (errc int) 
 	return 0
 }
 
-func (fs *UorFs) Getxattr(path string, name string) (errc int, xattr []byte) {
+func (fs *EmporousFs) Getxattr(path string, name string) (errc int, xattr []byte) {
 	defer fs.synchronize()()
 	node := fs.lookupNode(path)
 	if node == nil {
@@ -271,7 +271,7 @@ func (fs *UorFs) Getxattr(path string, name string) (errc int, xattr []byte) {
 
 }
 
-func (fs *UorFs) synchronize() func() {
+func (fs *EmporousFs) synchronize() func() {
 	fs.mutex.Lock()
 	return func() {
 		fs.mutex.Unlock()
@@ -279,7 +279,7 @@ func (fs *UorFs) synchronize() func() {
 }
 
 // loadFromReference loads a collection from an image reference.
-func (fs *UorFs) loadFromReference(ctx context.Context, reference string, client registryclient.Remote) error {
+func (fs *EmporousFs) loadFromReference(ctx context.Context, reference string, client registryclient.Remote) error {
 
 	layerDescriptors, err := getManifest(ctx, reference, client, fs.matcher)
 	if err != nil {
@@ -290,11 +290,11 @@ func (fs *UorFs) loadFromReference(ctx context.Context, reference string, client
 		layerInfo := layerInfo // fix &layerInfo
 
 		switch layerInfo.MediaType {
-		case ocimanifest.UORSchemaMediaType:
+		case empspec.MediaTypeSchemaDescriptor:
 			continue
 		case ocispec.MediaTypeImageConfig:
 			continue
-		case ocimanifest.UORConfigMediaType:
+		case empspec.MediaTypeConfiguration:
 			continue
 		case ocispec.MediaTypeImageManifest:
 			continue
@@ -305,11 +305,11 @@ func (fs *UorFs) loadFromReference(ctx context.Context, reference string, client
 			continue
 		}
 
-		attributeSet, err := ocimanifest.AnnotationsToAttributeSet(layerInfo.Annotations, nil)
+		attributeSet, err := descriptor.AnnotationsToAttributeSet(layerInfo.Annotations, nil)
 		if err != nil {
 			return err
 		}
-		//uorAttributes := layerInfo.Annotations[ocimanifest.AnnotationUORAttributes]
+		//emporousAttributes := layerInfo.Annotations[ocimanifest.AnnotationemporousAttributes]
 		filename, err := attributeSet.Find(ocispec.AnnotationTitle).AsString()
 		if err != nil {
 			return err
@@ -320,9 +320,9 @@ func (fs *UorFs) loadFromReference(ctx context.Context, reference string, client
 		node.desc = &layerInfo
 		node.stat.Size = layerInfo.Size
 		node.xattrs = map[string][]byte{}
-		node.xattrs["user.uor.Digest"] = []byte(layerInfo.Digest.String())
+		node.xattrs["user.emporous.Digest"] = []byte(layerInfo.Digest.String())
 		if layerInfo.MediaType != "" {
-			node.xattrs["user.uor.MediaType"] = []byte(layerInfo.MediaType)
+			node.xattrs["user.emporous.MediaType"] = []byte(layerInfo.MediaType)
 		}
 		for _, attribute := range attributeSet.List() {
 			if attribute.Key() == ocispec.AnnotationTitle {
@@ -331,7 +331,9 @@ func (fs *UorFs) loadFromReference(ctx context.Context, reference string, client
 			if jsonObj, err := json.Marshal(attribute.AsAny()); err != nil {
 				fs.Logger.Errorf("Unknown attribute value %v %v", attribute.Key(), err)
 			} else {
-				node.xattrs["user.uor.attributes."+attribute.Key()] = jsonObj
+				// TODO flatten
+				//attribute.value = {"converted":{"org.opencontainers.image.title":"helloworld"},"core-file":{"permissions":448,"uid":-1,"gid":-1},"unknown":{"test":"something"}}
+				node.xattrs["user.emporous.attributes."+attribute.Key()] = jsonObj
 			}
 		}
 		fs.insertNode(filename, node)
@@ -340,7 +342,7 @@ func (fs *UorFs) loadFromReference(ctx context.Context, reference string, client
 	return nil
 }
 
-func getManifest(ctx context.Context, reference string, client registryclient.Remote, matcher matchers.PartialAttributeMatcher) ([]ocispec.Descriptor, error) {
+func getManifest(ctx context.Context, reference string, client registryclient.Remote, matcher model.Matcher) ([]ocispec.Descriptor, error) {
 	//manifestDesc, manifestRc, err := client.GetManifest(ctx, reference)
 	//if err != nil {
 	//	return nil, err
@@ -370,17 +372,17 @@ func getManifest(ctx context.Context, reference string, client registryclient.Re
 
 			// Check that this is a descriptor node and the blob is
 			// not a config or schema resource.
-			desc, ok := node.(*descriptor.Node)
+			desc, ok := node.(*v2.Node)
 			if !ok {
 				return false, nil
 			}
 
 			switch desc.Descriptor().MediaType {
-			case ocimanifest.UORSchemaMediaType:
+			case empspec.MediaTypeSchemaDescriptor:
 				return true, nil
 			case ocispec.MediaTypeImageConfig:
 				return true, nil
-			case ocimanifest.UORConfigMediaType:
+			case empspec.MediaTypeConfiguration:
 				return true, nil
 			}
 
@@ -411,7 +413,7 @@ func getManifest(ctx context.Context, reference string, client registryclient.Re
 
 	nodes := graph.Nodes()
 	for _, node := range nodes {
-		d, ok := node.(*descriptor.Node)
+		d, ok := node.(*v2.Node)
 		if ok {
 			result = append(result, d.Descriptor())
 		}
@@ -421,7 +423,7 @@ func getManifest(ctx context.Context, reference string, client registryclient.Re
 }
 
 // bytesToManifest returns the descriptors directly pointed by the provided descriptor's bytes.
-// This is adapted from `uor-client-go` loader.getSuccessors and `oras` content.Successors
+// This is adapted from `emporous-go` loader.getSuccessors and `oras` content.Successors
 func bytesToManifest(ctx context.Context, content []byte, node ocispec.Descriptor) ([]ocispec.Descriptor, error) {
 	switch node.MediaType {
 	case string(types.DockerManifestSchema2), ocispec.MediaTypeImageManifest:
@@ -468,7 +470,7 @@ func artifactToOCI(desc artifactspec.Descriptor) ocispec.Descriptor {
 }
 
 // TODO run periodically to detect changes?
-func (fs *UorFs) buildFsNodes(ctx context.Context) {
+func (fs *EmporousFs) buildFsNodes(ctx context.Context) {
 	client := fs.client
 	err := fs.loadFromReference(ctx, fs.Source, client)
 	if err != nil {
@@ -477,12 +479,12 @@ func (fs *UorFs) buildFsNodes(ctx context.Context) {
 	}
 }
 
-func (fs *UorFs) insertNode(path string, node *UorFsNode) {
+func (fs *EmporousFs) insertNode(path string, node *EmporousFsNode) {
 	pathParts := strings.Split(path, "/")
 	parent := fs.root
 	for i, part := range pathParts {
 		if parent.children == nil {
-			parent.children = map[string]*UorFsNode{}
+			parent.children = map[string]*EmporousFsNode{}
 		}
 		if i == len(pathParts)-1 {
 			parent.children[part] = node
@@ -496,14 +498,14 @@ func (fs *UorFs) insertNode(path string, node *UorFsNode) {
 	}
 }
 
-func NewUorFs(ctx context.Context, o UorFsOptions, client registryclient.Client, matcher matchers.PartialAttributeMatcher) *UorFs {
+func NewEmporousFs(ctx context.Context, o EmporousFsOptions, client registryclient.Client, matcher model.Matcher) *EmporousFs {
 	duration := 5 * time.Minute
-	fs := UorFs{
-		UorFsOptions:  &o,
-		client:        client,
-		matcher:       matcher,
-		ctx:           ctx,
-		cacheDuration: &duration,
+	fs := EmporousFs{
+		EmporousFsOptions: &o,
+		client:            client,
+		matcher:           matcher,
+		ctx:               ctx,
+		cacheDuration:     &duration,
 	}
 	defer fs.synchronize()()
 	//fs.ino++

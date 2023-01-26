@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/winfsp/cgofuse/fuse"
 
-	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/options"
+	"github.com/emporous-community/emporous-fuse-go/config"
 	"github.com/emporous-community/emporous-fuse-go/fs"
 )
 
@@ -35,7 +35,7 @@ var clientMountExamples = []examples.Example{
 // MountOptions describe configuration options that can
 // be set using the pull subcommand.
 type MountOptions struct {
-	*options.RootOptions
+	*config.RootOptions
 	Source         string
 	MountPoint     string
 	Insecure       bool
@@ -47,7 +47,7 @@ type MountOptions struct {
 
 // NewMountCmd creates a new cobra.Command for the mount subcommand.
 // TODO decide whether to use traditional mount -o flag format or to reuse emporous-go flags
-func NewMountCmd(rootOpts *options.RootOptions) *cobra.Command {
+func NewMountCmd(rootOpts *config.RootOptions) *cobra.Command {
 	o := MountOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{

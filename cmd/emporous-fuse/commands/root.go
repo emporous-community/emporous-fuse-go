@@ -9,19 +9,19 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/log"
-	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/options"
+	"github.com/emporous-community/emporous-fuse-go/config"
 )
 
 // NewRootCmd creates a new cobra.Command for the command root.
 func NewRootCmd() *cobra.Command {
-	o := options.RootOptions{}
+	o := config.RootOptions{}
 
 	o.IOStreams = genericclioptions.IOStreams{
 		In:     os.Stdin,
 		Out:    os.Stdout,
 		ErrOut: os.Stderr,
 	}
-	o.EnvConfig = options.ReadEnvConfig()
+	o.EnvConfig = config.ReadEnvConfig()
 	cmd := &cobra.Command{
 		Use:   filepath.Base(os.Args[0]),
 		Short: "Emporous FUSE Driver",

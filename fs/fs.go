@@ -20,7 +20,7 @@ import (
 	"github.com/winfsp/cgofuse/fuse"
 
 	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/log"
-	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/options"
+	"github.com/emporous-community/emporous-fuse-go/config"
 )
 
 type DecayCache struct {
@@ -68,7 +68,7 @@ func (c *DecayCache) RemoveUser() {
 }
 
 type EmporousFsOptions struct {
-	*options.RootOptions
+	*config.RootOptions
 	Source         string
 	MountPoint     string
 	Insecure       bool

@@ -19,8 +19,8 @@ import (
 	artifactspec "github.com/oras-project/artifacts-spec/specs-go/v1"
 	"github.com/winfsp/cgofuse/fuse"
 
-	"github.com/emporous-community/emporous-fuse-go/cli/log"
-	"github.com/emporous-community/emporous-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/log"
+	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/options"
 )
 
 type DecayCache struct {
@@ -68,7 +68,7 @@ func (c *DecayCache) RemoveUser() {
 }
 
 type EmporousFsOptions struct {
-	*config.RootOptions
+	*options.RootOptions
 	Source         string
 	MountPoint     string
 	Insecure       bool

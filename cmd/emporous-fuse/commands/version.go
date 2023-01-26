@@ -1,4 +1,4 @@
-package cli
+package commands
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/emporous-community/emporous-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/options"
 )
 
 var (
@@ -40,7 +40,7 @@ type clientVersion struct {
 }
 
 // NewVersionCmd creates a new cobra.Command for the version subcommand.
-func NewVersionCmd(rootOpts *config.RootOptions) *cobra.Command {
+func NewVersionCmd(rootOpts *options.RootOptions) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Print the version",
@@ -52,7 +52,7 @@ func NewVersionCmd(rootOpts *config.RootOptions) *cobra.Command {
 }
 
 // getVersion will output the templated version message.
-func getVersion(ro *config.RootOptions) error {
+func getVersion(ro *options.RootOptions) error {
 	versionWithBuild := func() string {
 		if buildData != "" {
 			return fmt.Sprintf("%s+%s", version, buildData)

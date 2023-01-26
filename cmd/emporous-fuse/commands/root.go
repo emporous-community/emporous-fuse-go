@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"os"
@@ -8,26 +8,20 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
-	"github.com/emporous-community/emporous-fuse-go/cli"
-	"github.com/emporous-community/emporous-fuse-go/cli/log"
-	"github.com/emporous-community/emporous-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/log"
+	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/options"
 )
-
-func main() {
-	rootCmd := NewRootCmd()
-	cobra.CheckErr(rootCmd.Execute())
-}
 
 // NewRootCmd creates a new cobra.Command for the command root.
 func NewRootCmd() *cobra.Command {
-	o := config.RootOptions{}
+	o := options.RootOptions{}
 
 	o.IOStreams = genericclioptions.IOStreams{
 		In:     os.Stdin,
 		Out:    os.Stdout,
 		ErrOut: os.Stderr,
 	}
-	o.EnvConfig = config.ReadEnvConfig()
+	o.EnvConfig = options.ReadEnvConfig()
 	cmd := &cobra.Command{
 		Use:   filepath.Base(os.Args[0]),
 		Short: "Emporous FUSE Driver",
@@ -60,8 +54,8 @@ func NewRootCmd() *cobra.Command {
 	f.StringVarP(&o.LogLevel, "loglevel", "l", "info",
 		"Log level (debug, info, warn, error, fatal)")
 
-	cmd.AddCommand(cli.NewMountCmd(&o))
-	cmd.AddCommand(cli.NewVersionCmd(&o))
+	cmd.AddCommand(NewMountCmd(&o))
+	cmd.AddCommand(NewVersionCmd(&o))
 
 	return cmd
 }

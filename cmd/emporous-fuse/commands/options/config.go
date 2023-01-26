@@ -1,4 +1,4 @@
-package config
+package options
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
-	"github.com/emporous-community/emporous-fuse-go/cli/log"
+	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/log"
 )
 
 // EnvConfig stores CLI runtime configuration from environment variables.

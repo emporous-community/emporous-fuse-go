@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
-	"github.com/emporous-community/emporous-fuse-go/cmd/emporous-fuse/commands/log"
 	"github.com/emporous-community/emporous-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/log"
 )
 
 // NewRootCmd creates a new cobra.Command for the command root.

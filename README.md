@@ -4,8 +4,8 @@ Mount an Emporous collection to a directory with FUSE.
 
 Usage:
 
-    ./emporous-fuse-go mount <collection> <mountpoint>
-    ./emporous-fuse-go mount localhost:5001/test:latest ./mount-dir/
+    ./emporous-fuse mount <collection> <mountpoint>
+    ./emporous-fuse mount localhost:5001/test:latest ./mount-dir/
 
     # Read Emporous attributes of files:
     getfattr -d ./mount-dir/index.json

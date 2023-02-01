@@ -19,8 +19,8 @@ import (
 	artifactspec "github.com/oras-project/artifacts-spec/specs-go/v1"
 	"github.com/winfsp/cgofuse/fuse"
 
-	"github.com/emporous-community/emporous-fuse-go/cli/log"
 	"github.com/emporous-community/emporous-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/log"
 )
 
 type DecayCache struct {

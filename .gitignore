@@ -1,0 +1,19 @@
+# Build artifacts.
+/bin/
+
+# Test artifacts.
+coverage.out
+**/test-output
+
+# Logs.
+
+
+# Local vendor. Remove when ready to vendor dependencies.
+/vendor/
+
+# Local
+.idea
+tags
+*.swp
+.vscode
+dist

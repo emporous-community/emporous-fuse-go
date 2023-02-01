@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"os"
@@ -8,15 +8,9 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
-	"github.com/emporous-community/emporous-fuse-go/cli"
-	"github.com/emporous-community/emporous-fuse-go/cli/log"
 	"github.com/emporous-community/emporous-fuse-go/config"
+	"github.com/emporous-community/emporous-fuse-go/log"
 )
-
-func main() {
-	rootCmd := NewRootCmd()
-	cobra.CheckErr(rootCmd.Execute())
-}
 
 // NewRootCmd creates a new cobra.Command for the command root.
 func NewRootCmd() *cobra.Command {
@@ -60,8 +54,8 @@ func NewRootCmd() *cobra.Command {
 	f.StringVarP(&o.LogLevel, "loglevel", "l", "info",
 		"Log level (debug, info, warn, error, fatal)")
 
-	cmd.AddCommand(cli.NewMountCmd(&o))
-	cmd.AddCommand(cli.NewVersionCmd(&o))
+	cmd.AddCommand(NewMountCmd(&o))
+	cmd.AddCommand(NewVersionCmd(&o))
 
 	return cmd
 }
